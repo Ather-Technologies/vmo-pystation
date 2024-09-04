@@ -47,14 +47,10 @@ class API:
         jsonResponse = self.get_response(post(config.UPLOAD_ENDPOINT, files=files, data=data))
 
         # Basic checks for errors
-        if ('error' in jsonResponse):
+        if 'error' in jsonResponse:
             raise Exception("Upload failed! Error: " + jsonResponse['error'])
         if 'status' not in jsonResponse:
             raise Exception("Upload failed! Response: ", jsonResponse)
-
-        # Check the response json.status for success
-        if jsonResponse['status'] != "201":
-            raise Exception("Upload failed." + jsonResponse['error'])
         
         # Remove the file after upload
         remove(file_path)
