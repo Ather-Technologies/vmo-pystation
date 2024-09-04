@@ -3,7 +3,8 @@ import numpy
 from rtlsdr import RtlSdr, RtlSdrAio
 from typing import NamedTuple
 from dotenv import load_dotenv
-load_dotenv(dotenv_path='.env', override=True)  # take environment variables from .env.
+
+load_dotenv(dotenv_path=".env", override=True)  # take environment variables from .env.
 
 
 class StationController:
@@ -11,6 +12,24 @@ class StationController:
         """
         Represents the configuration type for a station.
         """
+
+        def toString(self) -> str:
+            """
+            Returns a string representation of the station controller's attributes.
+
+            Returns:
+                str: A string containing the values of the following attributes:
+                    - VFO_FS
+                    - VFO_CTR_FREQ
+                    - VFO_GAIN
+                    - OUT_FILE_FS
+                    - UPLOAD_ENDPOINT
+                    - STATION_SRC_ID
+                    - SQUELCH
+                    - WAIT_TO_END
+                    - DEBUG_MODE
+            """
+            return f"VFO_FS={self.VFO_FS},\nVFO_CTR_FREQ={self.VFO_CTR_FREQ},\nVFO_GAIN={self.VFO_GAIN}=OUT_FILE_FS={self.OUT_FILE_FS},\nUPLOAD_ENDPOINT={self.UPLOAD_ENDPOINT},\nSTATION_SRC_ID={self.STATION_SRC_ID},\nSQUELCH={self.SQUELCH},\nWAIT_TO_END={self.WAIT_TO_END},\nDEBUG_MODE={self.DEBUG_MODE}"
 
         VFO_FS: int
         """Radio sample rate in Hz."""
@@ -78,7 +97,7 @@ class StationController:
 
         _VFO_CTR_FREQ = float(_VFO_CTR_FREQ) * 1e6
 
-        return StationController.Config(
+        builtConfig = StationController.Config(
             VFO_FS=int(_VFO_FS),
             VFO_CTR_FREQ=int(_VFO_CTR_FREQ),
             VFO_GAIN=_VFO_GAIN,
@@ -89,6 +108,14 @@ class StationController:
             WAIT_TO_END=int(_WAIT_TO_END),
             DEBUG_MODE=bool(_DEBUG_MODE),
         )
+
+        print(
+            "------------------- Print Full Configuration -------------------\n"
+            + builtConfig.toString()
+            + "\n------------------- End of Print Full Configuration. -------------------"
+        )
+
+        return builtConfig
 
     def _sdr_setup(self) -> RtlSdrAio:
         """
@@ -101,13 +128,12 @@ class StationController:
         if not RtlSdr:
             raise Exception("RtlSdr Failed to import!")
 
-        print('Initalizing RTL')
+        print("Initalizing RTL")
         # Initialize radio and signal processor
         rtl = RtlSdr()
         rtl.center_freq = self.cfg.VFO_CTR_FREQ
         rtl.sample_rate = self.cfg.VFO_FS
         rtl.gain = self.cfg.VFO_GAIN
-        rtl.freq_correction = 60  # PPM
 
         # Return the radio object
         return rtl
@@ -118,7 +144,7 @@ class StationController:
         """
         if not self.rtlsdr:
             return
-        
+
         self.rtlsdr.stop()
         self.rtlsdr.close()
         pass
