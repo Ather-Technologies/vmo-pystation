@@ -15,13 +15,12 @@ stnCtrl = StationController()
 sigProc = SignalProcessor()
 api = API()
 
+
 async def demod_output_and_upload(iq_samples: np.complex64):
     demodulated_resamped = sigProc.decimate_samples(
         stnCtrl.cfg.VFO_FS,
         stnCtrl.cfg.OUT_FILE_FS,
-        sigProc.fm_demodulate(
-            iq_samples, stnCtrl.cfg.SQUELCH, stnCtrl.cfg.VFO_FS
-        ),
+        sigProc.fm_demodulate(iq_samples, stnCtrl.cfg.SQUELCH, stnCtrl.cfg.VFO_FS),
     )
 
     sigProc.run_plots(
