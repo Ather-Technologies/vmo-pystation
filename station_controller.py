@@ -150,14 +150,14 @@ class StationController:
         """
         self._sdr_destroy()
 
-    async def run_stream(self) -> numpy.complex64:
+    async def run_stream(self) -> numpy.ndarray | numpy.complex64:
         """
         Runs the stream and collects IQ samples.
         If DEBUG_MODE is enabled, reads samples from a file. Otherwise, collects samples from the RTL-SDR device.
         Squelch is applied to filter out low power signals.
         The collected samples are stored in an array and returned.
         Returns:
-            numpy.complex64: Array of IQ samples.
+            numpy.ndarray: Array of IQ samples.
         """
         if self.cfg.DEBUG_MODE or not self.rtlsdr:
             print("DEBUG MODE: Reading samples from file.")
