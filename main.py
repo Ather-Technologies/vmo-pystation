@@ -3,20 +3,16 @@ from signal_processor import SignalProcessor
 from vmo_api import API
 import numpy as np
 import asyncio
+import multiprocessing
 import datetime
 
-# print(str(vfo_center_freq / 1e6) + " MHz Center Frequency Set.")
-# print(str(stationcontroller.cfg.VFO_FS / 1e3) + " KHz Output Sample Rate Set.")
-# print(str(squelch_threshold) + " Squelch Threshold Set.")
-# print(str(wait_to_end) + " Seconds of Quiet Before Ending Recording.")
-# print("Radio Initialized.")
 
 stnCtrl = StationController()
 sigProc = SignalProcessor()
 api = API()
 
 
-async def demod_output_and_upload(iq_samples: np.complex64):
+def demod_output_and_upload(iq_samples: np.complex64):
     demodulated_resamped = sigProc.decimate_samples(
         stnCtrl.cfg.VFO_FS,
         stnCtrl.cfg.OUT_FILE_FS,
@@ -39,14 +35,17 @@ async def demod_output_and_upload(iq_samples: np.complex64):
     )
 
     # Run the upload
-    await api.upload_clip(output_name, current_time, stnCtrl.cfg)
+    asyncio.run(api.upload_clip(output_name, current_time, stnCtrl.cfg))
 
 
 async def main():
     while True:
         try:
             iq_samples = await stnCtrl.run_stream()
-            asyncio.create_task(demod_output_and_upload(iq_samples))
+            p = multiprocessing.Process(
+                target=demod_output_and_upload, args=[iq_samples]
+            )
+            p.start()
         except RuntimeError:
             break
         if stnCtrl.cfg.DEBUG_MODE:
