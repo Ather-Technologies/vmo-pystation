@@ -5,6 +5,7 @@ import numpy as np
 import asyncio
 import multiprocessing
 import datetime
+import tempfile
 
 
 stnCtrl = StationController()
@@ -26,16 +27,18 @@ def demod_output_and_upload(iq_samples: np.complex64):
     # Convert the float32 samples to int16 to save on disk space
     demodulated_resamped = sigProc.float32_to_int16(demodulated_resamped)
 
-    # Save the demodulated audio to a file
+    # Save the demodulated audio to a temporary file
     current_time = datetime.datetime.now()
-    output_name = f"output/{current_time.hour:02}_{current_time.minute:02}_{current_time.second:02}.mp3"
-
-    sigProc.save_numpy_as_mp3(
-        stnCtrl.cfg.OUT_FILE_FS, demodulated_resamped, output_name
-    )
-
-    # Run the upload
-    asyncio.run(api.upload_clip(output_name, current_time, stnCtrl.cfg))
+    
+    with tempfile.NamedTemporaryFile(suffix='.mp3') as temp_file:
+        # Save to the temporary file
+        sigProc.save_numpy_as_mp3(
+            stnCtrl.cfg.OUT_FILE_FS, demodulated_resamped, temp_file.name
+        )
+        
+        # Run the upload while the file still exists
+        asyncio.run(api.upload_clip(temp_file.name, current_time, stnCtrl.cfg))
+    # File is automatically deleted when the with block exits
 
 
 async def main():

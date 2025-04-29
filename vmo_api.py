@@ -1,8 +1,6 @@
 from station_controller import StationController
 from datetime import datetime
 from requests import post, Response
-from os import remove
-
 
 class API:
     def get_response(self, response: Response) -> dict:
@@ -52,6 +50,4 @@ class API:
         if 'status' not in jsonResponse:
             raise Exception("Upload failed! Response: ", jsonResponse)
         
-        # Remove the file after upload
-        remove(file_path)
         return None
